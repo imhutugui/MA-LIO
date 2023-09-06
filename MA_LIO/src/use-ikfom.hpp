@@ -11,7 +11,7 @@ typedef MTK::vect<2, double> vect2;
 
 //4. Change the MTK_bUILD_MANIFOLD based on user's lid_num.
 // If user uses two LiDARs, only offset_R_0, offset_R_1, offset_T_0 and offset_T_1 are needed.
-MTK_BUILD_MANIFOLD(state_ikfom,
+/*MTK_BUILD_MANIFOLD(state_ikfom,
 ((vect3, pos))
 ((SO3, rot))
 ((SO3, offset_R_0))
@@ -24,10 +24,10 @@ MTK_BUILD_MANIFOLD(state_ikfom,
 ((vect3, bg))
 ((vect3, ba))
 ((S2, grav))
-);
+);*/
 
 /*** For UrbanNav Dataset (Case: LiDAR 2)***/
-/*MTK_BUILD_MANIFOLD(state_ikfom,
+MTK_BUILD_MANIFOLD(state_ikfom,
 ((vect3, pos))
 ((SO3, rot))
 ((SO3, offset_R_0))
@@ -38,7 +38,7 @@ MTK_BUILD_MANIFOLD(state_ikfom,
 ((vect3, bg))
 ((vect3, ba))
 ((S2, grav))
-);*/
+);
 
 MTK_BUILD_MANIFOLD(input_ikfom,
 ((vect3, acc))
