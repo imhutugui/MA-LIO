@@ -49,6 +49,10 @@ void Preprocess::process(const sensor_msgs::PointCloud2::ConstPtr &msg, PointClo
     velodyne_handler(msg, lidar);
     break;
 
+  case HESAI:
+    hesai_handler(msg, lidar);
+    break;
+
   default:
     printf("Error LiDAR Type");
     break;
@@ -114,6 +118,7 @@ void Preprocess::oust64_handler(const sensor_msgs::PointCloud2::ConstPtr &msg, i
   pl_surf.reserve(plsize);
 
   double time_stamp = msg->header.stamp.toSec();
+  pl_surf.header.stamp = time_stamp;
   // cout << "===================================" << endl;
   // printf("Pt size = %d, N_SCANS[lidar] = %d\r\n", plsize, N_SCANS[lidar]);
   maximum_time = -9999;
@@ -208,6 +213,51 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg,
         pl_surf.points.push_back(added_pt);
       }
     }
+  }
+}
+
+void Preprocess::hesai_handler(const sensor_msgs::PointCloud2::ConstPtr &msg, int lidar)
+{
+  pl_surf.clear();
+  pl_corn.clear();
+  pl_full.clear();
+  pcl::PointCloud<hesai_ros::Point> pl_orig;
+  pcl::fromROSMsg(*msg, pl_orig);
+  int plsize = pl_orig.size();
+  pl_corn.reserve(plsize);
+  pl_surf.reserve(plsize);
+
+  double time_stamp = msg->header.stamp.toSec();
+  pl_surf.header.stamp = time_stamp;
+  pl_surf.header.frame_id = msg->header.frame_id;
+  // cout << "===================================" << endl;
+  // printf("Pt size = %d, N_SCANS[lidar] = %d\r\n", plsize, N_SCANS[lidar]);
+  maximum_time = -9999;
+  for (int i = 0; i < pl_orig.points.size(); i++)
+  {
+    if (i % point_filter_num[lidar] != 0)
+      continue;
+
+    double range = pl_orig.points[i].x * pl_orig.points[i].x + pl_orig.points[i].y * pl_orig.points[i].y + pl_orig.points[i].z * pl_orig.points[i].z;
+
+    if (range < (blind * blind))
+      continue;
+
+    Eigen::Vector3d pt_vec;
+    PointType added_pt;
+    added_pt.x = pl_orig.points[i].x;
+    added_pt.y = pl_orig.points[i].y;
+    added_pt.z = pl_orig.points[i].z;
+    added_pt.intensity = pl_orig.points[i].intensity;
+    added_pt.normal_x = 0;
+    added_pt.normal_y = 0;
+    added_pt.normal_z = 0;
+    added_pt.curvature = (pl_orig.points[i].timestamp - time_stamp) * time_unit_scale; // curvature unit: ms
+    if (maximum_time < added_pt.curvature)
+    {
+      maximum_time = added_pt.curvature;
+    }
+    pl_surf.points.push_back(added_pt);
   }
 }
 

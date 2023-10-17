@@ -1,9 +1,9 @@
 <launch>
-  <!-- Launch file for velodyne16 VLP-16 LiDAR -->
+  <!-- Launch file for hesai LiDAR -->
 
     <arg name="rviz" default="true" />
 
-    <rosparam command="load" file="$(find ma_lio)/config/Indoor.yaml" />
+    <rosparam command="load" file="$(find ma_lio)/config/Outdoor.yaml" />
 
     <param name="feature_extract_enable" type="bool" value="0"/>
     <param name="max_iteration" type="int" value="3" />
@@ -14,7 +14,7 @@
     <param name="range_min" type="double" value="0" />
     <param name="range_max" type="double" value="1" />
     <param name="runtime_pos_log_enable" type="bool" value="0" />
-    <node pkg="rosbag" type="play" name="player" args="--clock /home/south/data/vt0620imu_2/post/internal/south-slam-low.bag"/>
+    <node pkg="rosbag" type="play" name="player" args="--clock /home/south/data/105-0922_3/post/internal/south-slam-low.bag"/>
     <node pkg="ma_lio" type="malio_mapping" name="laserMapping" output="screen" />
     <group if="$(arg rviz)">
     <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find ma_lio)/rviz_cfg/ma_lio.rviz" />

@@ -89,6 +89,7 @@ PointCloudXYZI::Ptr normvec(new PointCloudXYZI(100000, 1));
 PointCloudXYZI::Ptr laserCloudOri(new PointCloudXYZI(100000, 1));
 PointCloudXYZI::Ptr corr_normvect(new PointCloudXYZI(100000, 1));
 PointCloudXYZI::Ptr pcl_wait_save(new PointCloudXYZI());
+PointCloudXYZI::Ptr pcl_full_cloud(new PointCloudXYZI());
 
 pcl::VoxelGrid<PointType> downSizeFilterSurf;
 
@@ -475,6 +476,7 @@ void publish_frame_world(const ros::Publisher &pubLaserCloudFull)
             RGBpointBodyToWorld(&feats_undistort->points[i], &laserCloudWorld->points[i]);
 
         *pcl_wait_save += *laserCloudWorld;
+        *pcl_full_cloud += *laserCloudWorld;
         static int scan_wait_num = 0;
         scan_wait_num++;
         if (pcl_wait_save->size() > 0 && pcd_save_interval > 0 && scan_wait_num > pcd_save_interval)
@@ -929,10 +931,10 @@ int main(int argc, char **argv)
     ros::Publisher pubOdomAftMapped = nh.advertise<nav_msgs::Odometry>("/Odometry", 100000);
     ros::Publisher pubPath = nh.advertise<nav_msgs::Path>("/path", 100000);
     //------------------------------------------------------------------------------------------------------//
-    signal(SIGINT, SigHandle);
+    // signal(SIGINT, SigHandle);
     ros::Rate rate(5000);
     bool status = ros::ok();
-    while (status)
+    while (ros::ok())
     {
         if (flg_exit)
             break;
@@ -1081,13 +1083,13 @@ int main(int argc, char **argv)
         rate.sleep();
     }
     /**************** save map ****************/
-    if (pcl_wait_save->size() > 0 && pcd_save_en)
+    if (pcl_full_cloud->size() > 0 && pcd_save_en)
     {
         string file_name = string("result.pcd");
         string all_points_dir(string(string(ROOT_DIR) + "PCD/") + file_name);
         pcl::PCDWriter pcd_writer;
         cout << "current scan saved to /PCD/" << file_name << endl;
-        pcd_writer.writeBinary(all_points_dir, *pcl_wait_save);
+        pcd_writer.writeBinary(all_points_dir, *pcl_full_cloud);
     }
 
     fout_out.close();
