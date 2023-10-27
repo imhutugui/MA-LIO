@@ -535,6 +535,7 @@ void publish_odometry(const ros::Publisher &pubOdomAftMapped)
     q.setZ(odomAftMapped.pose.pose.orientation.z);
     transform.setRotation(q);
     br.sendTransform(tf::StampedTransform(transform, odomAftMapped.header.stamp, "camera_init", "body"));
+    br.sendTransform(tf::StampedTransform(transform, odomAftMapped.header.stamp, "map", "trajectory_0"));
 }
 
 void publish_path(const ros::Publisher pubPath)
@@ -812,6 +813,32 @@ void visualize_state()
                   << "\n\t\t[qy]: " << extrinsic_q.y() 
                   << "\n\t\t[qz]: " << extrinsic_q.z() 
                   << "\n\t\t[qw]: " << extrinsic_q.w() << "\033[0m" << std::endl;
+    }
+
+    if (lid_num == 2)
+    {
+        V3D i2l1_t = *(static_cast<MTK::vect<3,double> *>(state_point.vect_state_ptr[1]));
+        Eigen::Quaterniond q1 = *(static_cast<MTK::SO3<double> *>(state_point.SO3_state_ptr[1]));
+        V3D i2l2_t = *(static_cast<MTK::vect<3,double> *>(state_point.vect_state_ptr[2]));
+        Eigen::Quaterniond q2 = *(static_cast<MTK::SO3<double> *>(state_point.SO3_state_ptr[2]));
+        Eigen::Affine3d T1 = Eigen::Affine3d::Identity();
+        T1.translation() = i2l1_t;
+        T1.rotate(q1);
+        Eigen::Affine3d T2 = Eigen::Affine3d::Identity();
+        T2.translation() = i2l2_t;
+        T2.rotate(q2);
+        Eigen::Affine3d T12 = T1.inverse() * T2;
+        V3D l1l2_t = T12.translation();
+        Eigen::Quaterniond l1l2_q(T12.rotation());
+        std::cout << "\033[1;32m" << "\n\tLidar1-2 Translation: "
+                  << "\n\t\t[x]: " << l1l2_t(0) << " meter"
+                  << "\n\t\t[y]: " << l1l2_t(1) << " meter"
+                  << "\n\t\t[z]: " << l1l2_t(2) << " meter"
+                  << "\n\tLidar1-2 Rotation: "
+                  << "\n\t\t[qx]: " << l1l2_q.x()
+                  << "\n\t\t[qy]: " << l1l2_q.y()
+                  << "\n\t\t[qz]: " << l1l2_q.z()
+                  << "\n\t\t[qw]: " << l1l2_q.w() << "\033[0m" << std::endl;
     }
 
     for(int num = 0; num < lid_num - 1; num++)
